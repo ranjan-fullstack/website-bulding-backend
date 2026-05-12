@@ -14,6 +14,16 @@ const serializeUser = (user) => ({
   websiteProject: user.websiteProject,
 });
 
+const authCookieOptions = {
+  httpOnly: true,
+  sameSite:
+    process.env.SESSION_COOKIE_SAMESITE ||
+    (process.env.NODE_ENV === "production" ? "none" : "lax"),
+  secure: process.env.NODE_ENV === "production",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+  path: "/",
+};
+
 export const googleLogin = async (req, res) => {
   const { credential } = req.body;
 
@@ -56,14 +66,24 @@ export const googleLogin = async (req, res) => {
     }
   );
 
-  return res.json({
-    token: createAuthToken(user),
-    user: serializeUser(user),
-  });
+  const token = createAuthToken(user);
+
+  res.cookie("webmitra_session", token, authCookieOptions);
+
+  return res.json({ token, user: serializeUser(user) });
 };
 
 export const getMe = async (req, res) => {
   return res.json({ user: serializeUser(req.user) });
+};
+
+export const logout = async (req, res) => {
+  res.clearCookie("webmitra_session", {
+    ...authCookieOptions,
+    maxAge: undefined,
+  });
+
+  return res.json({ message: "Signed out" });
 };
 
 export const selectWebsiteTemplate = async (req, res) => {

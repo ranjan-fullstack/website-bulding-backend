@@ -12,7 +12,10 @@ requiredEnv.forEach((key) => {
 
 export const env = {
   port: process.env.PORT || 5000,
-  frontendOrigin: process.env.FRONTEND_ORIGIN || "http://localhost:5173",
+  frontendOrigins: (process.env.FRONTEND_ORIGIN || "http://localhost:5173")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
   mongoUri: process.env.MONGODB_URI,
   googleClientId: process.env.GOOGLE_CLIENT_ID,
   jwtSecret: process.env.JWT_SECRET,

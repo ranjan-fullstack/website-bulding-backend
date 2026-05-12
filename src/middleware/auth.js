@@ -3,10 +3,12 @@ import { verifyAuthToken } from "../utils/tokens.js";
 
 export const requireAuth = async (req, res, next) => {
   try {
+    const cookieToken = req.cookies?.webmitra_session;
     const authHeader = req.headers.authorization || "";
-    const token = authHeader.startsWith("Bearer ")
+    const bearerToken = authHeader.startsWith("Bearer ")
       ? authHeader.slice("Bearer ".length)
       : null;
+    const token = cookieToken || bearerToken;
 
     if (!token) {
       return res.status(401).json({ message: "Login required" });

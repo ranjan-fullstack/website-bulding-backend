@@ -9,13 +9,49 @@ import { orderRouter } from "./routes/orderRoutes.js";
 
 const app = express();
 
+const parseCookies = (req, res, next) => {
+  req.cookies = Object.fromEntries(
+    (req.headers.cookie || "")
+      .split(";")
+      .map((cookie) => cookie.trim())
+      .filter(Boolean)
+      .map((cookie) => {
+        const separatorIndex = cookie.indexOf("=");
+        const key = separatorIndex >= 0 ? cookie.slice(0, separatorIndex) : cookie;
+        const value = separatorIndex >= 0 ? cookie.slice(separatorIndex + 1) : "";
+
+        try {
+          return [key, decodeURIComponent(value)];
+        } catch {
+          return [key, value];
+        }
+      })
+  );
+
+  next();
+};
+
 app.use(
   cors({
-    origin: env.frontendOrigin,
+    origin(origin, callback) {
+      if (!origin || env.frontendOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   })
 );
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  next();
+});
 app.use(express.json({ limit: "1mb" }));
+app.use(parseCookies);
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", service: "webmitra-backend" });
