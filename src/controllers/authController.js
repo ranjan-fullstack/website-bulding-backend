@@ -11,6 +11,7 @@ const serializeUser = (user) => ({
   email: user.email,
   avatar: user.avatar,
   role: user.role,
+  tenantId: user.tenantId ? user.tenantId.toString() : null,
   websiteProject: user.websiteProject,
 });
 

@@ -1,3 +1,4 @@
+import { Client } from "../models/Client.js";
 import { User } from "../models/User.js";
 
 const projectStatuses = ["not-started", "in-progress", "done"];
@@ -9,7 +10,7 @@ const getDashboardData = async (currentUserId) => {
     User.find(currentUserId ? { _id: { $ne: currentUserId } } : {})
       .sort({ createdAt: -1 })
       .limit(10)
-      .select("name email avatar role websiteProject createdAt lastLoginAt"),
+      .select("name email avatar role tenantId websiteProject createdAt lastLoginAt"),
   ]);
 
   return {
@@ -94,6 +95,30 @@ export const updateUserWebsiteProject = async (req, res) => {
     updatedAt: new Date(),
   };
 
+  await targetUser.save();
+
+  return res.json(await getDashboardData(req.user._id));
+};
+
+export const updateUserTenant = async (req, res) => {
+  const { userId } = req.params;
+  const { tenantId } = req.body;
+
+  const targetUser = await User.findById(userId);
+
+  if (!targetUser) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  if (tenantId) {
+    const client = await Client.findById(tenantId);
+
+    if (!client) {
+      return res.status(404).json({ message: "Client not found" });
+    }
+  }
+
+  targetUser.tenantId = tenantId || null;
   await targetUser.save();
 
   return res.json(await getDashboardData(req.user._id));

@@ -5,7 +5,9 @@ import { env } from "./config/env.js";
 import { adminRouter } from "./routes/adminRoutes.js";
 import { authRouter } from "./routes/authRoutes.js";
 import { businessRouter } from "./routes/businessRoutes.js";
+import { clientRouter } from "./routes/clientRoutes.js";
 import { orderRouter } from "./routes/orderRoutes.js";
+import { publicRouter } from "./routes/publicRoutes.js";
 
 const app = express();
 
@@ -61,6 +63,8 @@ app.use("/api/auth", authRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/admin/business", businessRouter);
 app.use("/api/orders", orderRouter);
+app.use("/api/client", clientRouter);
+app.use("/api/public", publicRouter);
 
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });

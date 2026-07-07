@@ -30,6 +30,12 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "admin"],
       default: "user",
     },
+    tenantId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Client",
+      default: null,
+      index: true,
+    },
     websiteProject: {
       status: {
         type: String,
