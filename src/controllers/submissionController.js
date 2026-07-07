@@ -1,5 +1,5 @@
 import { Client } from "../models/Client.js";
-import { Submission, submissionTypes } from "../models/Submission.js";
+import { Submission, submissionStatusesByType, submissionTypes } from "../models/Submission.js";
 
 const serializeSubmission = (submission) => ({
   id: submission._id.toString(),
@@ -47,4 +47,34 @@ export const listMySubmissions = async (req, res) => {
     .limit(200);
 
   return res.json({ submissions: submissions.map(serializeSubmission) });
+};
+
+export const updateMySubmissionStatus = async (req, res) => {
+  if (!req.user.tenantId) {
+    return res.status(400).json({ message: "Your account is not linked to a client" });
+  }
+
+  const submission = await Submission.findById(req.params.id);
+
+  if (!submission) {
+    return res.status(404).json({ message: "Submission not found" });
+  }
+
+  if (submission.clientId.toString() !== req.user.tenantId.toString()) {
+    return res.status(403).json({ message: "You cannot update another client's submission" });
+  }
+
+  const allowedStatuses = submissionStatusesByType[submission.type] || [];
+  const { status } = req.body;
+
+  if (!allowedStatuses.includes(status)) {
+    return res.status(400).json({
+      message: `Status must be one of: ${allowedStatuses.join(", ")}`,
+    });
+  }
+
+  submission.status = status;
+  await submission.save();
+
+  return res.json({ submission: serializeSubmission(submission) });
 };

@@ -1,7 +1,13 @@
 import mongoose from "mongoose";
 
 export const submissionTypes = ["inquiry", "admission"];
-export const submissionStatuses = ["new", "contacted", "closed"];
+export const submissionStatusesByType = {
+  inquiry: ["new", "contacted", "closed"],
+  admission: ["new", "confirmed", "joined"],
+};
+export const submissionStatuses = [
+  ...new Set(Object.values(submissionStatusesByType).flat()),
+];
 
 const submissionSchema = new mongoose.Schema(
   {
