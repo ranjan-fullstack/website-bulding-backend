@@ -6,7 +6,7 @@ import { createAuthToken } from "../utils/tokens.js";
 
 const googleClient = new OAuth2Client(env.googleClientId);
 
-const serializeUser = (user, clientName = null) => ({
+const serializeUser = (user, clientName = null, clientSlug = null) => ({
   id: user._id.toString(),
   name: user.name,
   email: user.email,
@@ -14,6 +14,7 @@ const serializeUser = (user, clientName = null) => ({
   role: user.role,
   tenantId: user.tenantId ? user.tenantId.toString() : null,
   clientName,
+  clientSlug,
   websiteProject: user.websiteProject,
 });
 
@@ -78,13 +79,15 @@ export const googleLogin = async (req, res) => {
 
 export const getMe = async (req, res) => {
   let clientName = null;
+  let clientSlug = null;
 
   if (req.user.tenantId) {
-    const client = await Client.findById(req.user.tenantId).select("name");
+    const client = await Client.findById(req.user.tenantId).select("name slug");
     clientName = client?.name || null;
+    clientSlug = client?.slug || null;
   }
 
-  return res.json({ user: serializeUser(req.user, clientName) });
+  return res.json({ user: serializeUser(req.user, clientName, clientSlug) });
 };
 
 export const logout = async (req, res) => {
